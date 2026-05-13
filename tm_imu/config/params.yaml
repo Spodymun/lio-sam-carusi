@@ -1,0 +1,8 @@
+tm_imu:
+  ros__parameters:
+    imu_baudrate : 921600
+    imu_port : "/dev/ttyACM0"
+    imu_frame_id : 'imu_link'
+    parent_frame_id : 'chassis_link'
+    timer_period : 2
+    transform : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

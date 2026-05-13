@@ -1,0 +1,592 @@
+Documentation of Changes for the LIO-SAM / Velodyne / IMU Setup
+
+This document describes the changes that were made in the ROS 2 workspace for the LIO-SAM, Velodyne and IMU setup. The goal of these changes was to adapt the system to our real hardware configuration, especially the Velodyne LiDAR, the external IMU and the required TF structure.
+
+
+1.1. Velodyne Pointcloud Configuration
+
+File path:
+/home/nelly/ws_catania/src/velodyne/velodyne_pointcloud/config/VLP16-velodyne_transform_node-params.yaml
+
+Changed parameter:
+
+organize_cloud: false
+
+Meaning:
+The point cloud is published as an unorganized list of points instead of a 2D ring/column structure.
+
+Reason:
+This is lighter to process and helped us avoid frequency drops in our setup.
+
+1.2. Velodyne Driver Configuration
+
+File path:
+/home/nelly/ws_catania/src/velodyne/velodyne_driver/config/VLP16-velodyne_driver_node-params.yaml
+
+Changed parameter:
+
+device_ip: ""
+
+Meaning:
+We left this empty so the driver does not filter packets by a fixed LiDAR IP.
+
+Reason:
+This made the connection more robust in our setup, even though the expected IP was configured.
+
+In general, we decided to keep the point cloud frame as "velodyne" instead of changing it directly to "lidar_link" in the driver or transform node parameters. This way, we avoid unnecessary point cloud transformations and preserve a higher processing rate.
+
+It could also be that this was a laptop-specific issue. However, after making the changes in this way, including the IMU and LIO-SAM changes described later, we no longer had frequency issues.
+
+The relation caused by keeping the frame as "velodyne" is fixed later in the LIO-SAM parameters.
+
+---
+
+2.1. Important General IMU Observation
+
+Although the IMU and LiDAR were physically mounted in the same direction, the sensor coordinate convention did not initially match the ROS REP-103 frame convention. This was identified by a manual translation test: a physical movement along the intended x-axis resulted mainly in a y-axis displacement in /lio_sam/mapping/odometry. After correcting the relative yaw alignment by 90 degrees, translations and rotations around all axes were consistent.
+
+Even though we used a standard matrix at first, the system only started working correctly after rotating the IMU by 90 degrees to the left.
+
+Pieroooooo please put a picture here :)
+
+This means:
+
+IMU x = LiDAR y
+IMU y = -LiDAR x
+
+After applying this physical/coordinate rotation, the system started working very well.
+
+For this IMU, we also needed to install a GUI from the manufacturer:
+
+https://www.syd-dynamics.com/download-center/
+
+Reason:
+With this GUI, we could see how the IMU works and which measurement units and metrics it was really using.
+
+Additionally, we needed the GUI to change the frequency at which the IMU sends data. It was originally sending at 50 Hz, and we changed it to 400 Hz.
+
+
+2.2 IMU Parameter Configuration
+
+File path:
+/home/nelly/ws_catania/src/tm_imu/config/params.yaml
+
+We made several changes in this file.
+
+2.2.1 IMU baudrate
+
+Changed parameter:
+
+imu_baudrate : 921600
+
+Reason:
+We changed the imu_baudrate because we wanted a constant high data flow for the 400 Hz IMU output.
+
+
+2.2.2 IMU port
+
+Changed parameter:
+
+imu_port
+
+
+Directly after plugging in the IMU, the port can be checked in the terminal with:
+
+dmesg | tail -30
+
+This command shows which port the IMU is connected to.
+
+
+2.2.3 IMU frame,
+
+Changed parameters:
+
+imu_frame_id : 'imu_link'
+
+Reason for imu_frame_id:
+We changed the imu_frame_id based on the frame expected by LIO-SAM. We did not have a frequency issue here.
+
+2.2.4  parent frame 
+parent_frame_id : 'chassis_link'
+timer_period : 2
+
+Reason for parent_frame_id:
+We changed the parent frame because in the LIO-SAM TF tree there is a chassis_link before the base_link. Even though these are all static transformations, we did not want to change too much, so that the setup remains reproducible. So we kept the chassis_link
+
+2.2.5 timer period
+Reason for timer_period:
+We changed the timer_period to 2, because the IMU can now output data at 400 Hz.
+
+
+2.3. IMU Node Source Code Changes
+
+File path:
+/home/nelly/ws_catania/src/tm_imu/src/tm_imu_node.cpp
+
+
+2.3.1 IMU topic names 
+
+Old:
+
+publisher_imu_      = this->create_publisher<sensor_msgs::msg::Imu>("imu_data", 10);
+publisher_imu_rpy_  = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("imu_data_rpy", 10);
+publisher_imu_mag_  = this->create_publisher<sensor_msgs::msg::MagneticField>("imu_data_mag", 10);
+
+New:
+
+publisher_imu_      = this->create_publisher<sensor_msgs::msg::Imu>("imu/data", rclcpp::SensorDataQoS());
+publisher_imu_rpy_  = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("imu/data_rpy", rclcpp::SensorDataQoS());
+publisher_imu_mag_  = this->create_publisher<sensor_msgs::msg::MagneticField>("imu/data_mag", rclcpp::SensorDataQoS());
+
+Reason for topic name changes:
+We changed the IMU topics to imu/data etc. because this is what LIO-SAM expected by default.
+
+We could also have changed the topic names inside the LIO-SAM params, but this repeatedly caused errors in our setup. Therefore, we decided to adapt the IMU node instead (it was a quick fix like this so we didn't even look further into the issue cause by imu_data).
+
+2.3.2 QoS
+
+Reason for QoS change:
+The old publishers used:
+
+create_publisher(..., 10);
+
+The new publishers use:
+
+create_publisher(..., rclcpp::SensorDataQoS());
+
+We changed to SensorDataQoS() because IMU data is published with a high frequency and old messages become irrelevant very quickly. This QoS profile is specifically intended for sensor streams and helped reduce latency and buffering issues in our setup.
+
+
+2.3.3 TF publishing change
+
+Old:
+
+PublishTransform();
+
+New:
+
+// PublishTransform();
+
+Reason:
+We disabled TF publishing because the IMU should move together with its parent frame and not as a separate dynamically published transform. The relation between the IMU and the robot frame is already part of the robot structure and therefore should be handled statically.
+
+
+2.3.4 Transform parent frame change
+
+Old:
+
+transform_.header.frame_id = "world";
+
+New:
+
+transform_.header.frame_id =
+    "" + this->get_parameter("parent_frame_id").as_string();
+
+Reason:
+Previously, the IMU transform was always published relative to world, which did not match our robot frame structure.
+
+We changed this so that the IMU instead uses the configured parent frame, for example chassis_link.
+
+
+2.3.5 Serial timeout change
+
+Old:
+
+serialib1->readBytes(..., 100, ...);
+
+New:
+
+serialib1->readBytes(..., 1, ...);
+
+Reason:
+We reduced the timeout from 100 ms to 1 ms because the IMU was running at a high frequency of approximately 400 Hz and we wanted the serial reading to react as quickly as possible.
+
+2.3.6 Acceleration unit conversion
+
+Old:
+
+imu_data_.linear_acceleration.x = sensor.accX;
+imu_data_.linear_acceleration.y = sensor.accY;
+imu_data_.linear_acceleration.z = sensor.accZ;
+
+New:
+
+imu_data_.linear_acceleration.x = sensor.accX * 9.80665;
+imu_data_.linear_acceleration.y = sensor.accY * 9.80665;
+imu_data_.linear_acceleration.z = sensor.accZ * 9.80665;
+
+Reason:
+We converted the acceleration from g to m/s² because ROS expects IMU acceleration data in SI units.
+
+The other IMU outputs were already in ROS-compatible metric units.
+
+---
+
+IMU
+
+File path:
+/home/nelly/ws_catania/src/LIO-SAM-ROS2/src/mapOptmization.cpp
+
+3.1.1 Added IMU subscriber variables
+
+Added after:
+
+bool isDegenerate = false;
+Eigen::Matrix<float, 6, 6> matP;
+
+Added code:
+
+rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr subImuRaw;
+float latestImuRoll = 0.0, latestImuPitch = 0.0;
+
+Reason:
+These variables store the most recent IMU roll and pitch values.
+
+3.1.2 Added additional IMU subscriber
+
+Added after the voxel-grid filter setup:
+
+downSizeFilterCorner.setLeafSize(mappingCornerLeafSize, mappingCornerLeafSize, mappingCornerLeafSize);
+downSizeFilterSurf.setLeafSize(mappingSurfLeafSize, mappingSurfLeafSize, mappingSurfLeafSize);
+downSizeFilterICP.setLeafSize(mappingSurfLeafSize, mappingSurfLeafSize, mappingSurfLeafSize);
+downSizeFilterSurroundingKeyPoses.setLeafSize(surroundingKeyframeDensity, surroundingKeyframeDensity, surroundingKeyframeDensity);
+
+Added code:
+
+subImuRaw = create_subscription<sensor_msgs::msg::Imu>(
+    imuTopic, qos_imu,
+    [this](const sensor_msgs::msg::Imu::SharedPtr msg) {
+        tf2::Quaternion q(msg->orientation.x, msg->orientation.y,
+                          msg->orientation.z, msg->orientation.w);
+        double roll, pitch, yaw;
+        tf2::Matrix3x3(q).getRPY(roll, pitch, yaw);
+        latestImuRoll  = (float)roll;
+        latestImuPitch = (float)pitch;
+    });
+
+Reason:
+This subscriber reads the IMU orientation and converts the quaternion into roll, pitch and yaw.
+
+Only roll and pitch are stored because they are relevant for checking whether the LiDAR is tilted too far.
+
+3.1.3 Added IMU tilt vs. LiDAR field-of-view check
+
+Added at the beginning of scan2MapOptimization(), after:
+
+void scan2MapOptimization()
+{
+    if (cloudKeyPoses3D->points.empty())
+        return;
+
+Added code:
+
+float lidarVerticalFOV = 30.0 * M_PI / 180.0; // VLP-16: ±15°
+float imuTilt = std::abs(latestImuPitch) + std::abs(latestImuRoll);
+
+if (imuTilt > lidarVerticalFOV) {
+    RCLCPP_ERROR(get_logger(), "IMU tilt (%.1f°) EXCEEDS LiDAR FOV (%.1f°)! Matching will likely fail.",
+                imuTilt * 180.0 / M_PI, lidarVerticalFOV * 180.0 / M_PI);
+} else if (imuTilt > lidarVerticalFOV * 0.7) {
+    RCLCPP_WARN(get_logger(), "IMU tilt (%.1f°) approaching LiDAR FOV limit (%.1f°)!",
+                imuTilt * 180.0 / M_PI, lidarVerticalFOV * 180.0 / M_PI);
+}
+
+Reason:
+This was added as a debugging aid.
+
+During testing, LIO-SAM sometimes became unstable or “exploded” when the LiDAR was tilted too far.
+
+The added check prints a warning or error when the measured IMU tilt approaches or exceeds the assumed vertical LiDAR field of view.
+
+This helped identify that the issue was not necessarily caused by an implementation error, but by insufficient usable LiDAR data during strong tilting.
+
+
+3.1.4 TF child frame correction
+
+Old:
+
+trans_odom_to_lidar.child_frame_id = "lidar_link";
+
+New:
+
+trans_odom_to_lidar.child_frame_id = "base_link"; 
+
+Reason:
+This was an important correction.
+
+Before the change, LIO-SAM published a transformation from odom to lidar_link. However, in the robot description file .xacro, lidar_link was already defined as a fixed child of base_link.
+
+Therefore, publishing odom -> lidar_link directly created an inconsistent TF structure.
+
+After the change, LIO-SAM publishes odom -> base_link, while both lidar_link and imu_link remain fixed children of base_link.
+
+This better represents the physical setup, because the LiDAR and IMU are mounted on the robot base.
+
+3.2 
+File path:
+/home/nelly/ws_catania/src/LIO-SAM-ROS2/launch/run.launch.py
+
+Changed code:
+
+Old:
+
+share_dir, 'config', 'params_rs16.yaml'),
+
+New:
+
+share_dir, 'config', 'params.yaml'),
+
+Reason:
+We changed this because all of our configuration changes were made in params.yaml and not in params_rs16.yaml.
+
+The params_rs16.yaml file would also correspond to another LiDAR configuration.
+
+
+3.3. LIO-SAM Robot Description Change
+
+File path:
+/home/nelly/ws_catania/src/LIO-SAM-ROS2/config/robot.urdf.xacro
+
+Changed LiDAR link definition.
+
+Old:
+
+<link name="lidar_link"> </link>
+<joint name="lidar_joint" type="fixed">
+  <parent link="base_link" />
+  <child link="lidar_link" />
+  <origin xyz="0 0 0" rpy="0 0 0" />
+</joint>
+
+New:
+
+<link name="velodyne"> </link>
+<joint name="lidar_joint" type="fixed">
+  <parent link="base_link" />
+  <child link="velodyne" />
+  <origin xyz="0 0 0" rpy="0 0 0" />
+</joint>
+
+Reason:
+As described above, the frame is now called velodyne because we did not change it in the Velodyne driver or transform configuration files.
+
+We also do not use every link in this file, but we left them there for future projects.
+
+This file also shows the static transformation that was discussed earlier.
+
+The IMU and LiDAR are fixed to base_link. Without the transformation changes described above, the IMU and the LiDAR were moving around without the base_link, which did not represent the real physical structure.
+
+
+3.4. LIO-SAM Parameter Configuration
+
+File path:
+/home/nelly/ws_catania/src/LIO-SAM-ROS2/config/params.yaml
+
+
+3.4.1 Pointcloud topic
+
+Old:
+
+pointCloudTopic: "/points"
+
+New:
+
+pointCloudTopic: "/velodyne_points"
+
+Reason:
+As described above, we did not want to change the Velodyne configuration files unnecessarily, so we changed the expected point cloud topic here in the LIO-SAM configuration.
+
+
+3.4.2 LiDAR frame
+
+Old:
+
+lidarFrame: "lidar_link"
+
+New:
+
+lidarFrame: "velodyne"
+
+Reason:
+The incoming Velodyne point cloud uses the frame velodyne. Since we kept this frame name in the Velodyne configuration, LIO-SAM also needs to use velodyne as the LiDAR frame.
+
+
+3.4.3 IMU gravity
+
+Old:
+
+imuGravity: 9.80511
+
+New:
+
+imuGravity: -9.80511
+
+Reason:
+Our IMU reports that we are measuring the Earth’s gravitational pull as -g, while the IMU configuration expected by the original LIO-SAM setup measured it as +g.
+
+
+3.4.4 Sensor type
+
+Old:
+
+sensor: ouster
+
+New:
+
+sensor: velodyne
+
+Reason:
+This is very important because it changes the calculation inside the files in the src folder.
+
+LIO-SAM handles Ouster and Velodyne data differently, so this parameter has to match the real LiDAR sensor.
+
+
+3.4.5 Number of scan lines
+
+Old:
+
+N_SCAN: 64
+
+New:
+
+N_SCAN: 16
+
+Reason:
+This is important because our LiDAR only has 16 scan layers.
+
+Otherwise, the data could be interpreted incorrectly.
+
+
+3.4.6 Horizontal scan resolution
+
+Old:
+
+Horizon_SCAN: 512
+
+New:
+
+Horizon_SCAN: 1800
+
+Reason:
+This was changed so that the data is interpreted correctly for our Velodyne setup.
+
+Otherwise, the point cloud data could be interpreted incorrectly.
+
+
+3.4.7 IMU noise, bias and weight parameters
+
+Old:
+
+imuAccNoise: 3.9939570888238808e-03
+imuGyrNoise: 1.5636343949698187e-03
+imuAccBiasN: 6.4356659353532566e-05
+imuGyrBiasN: 3.5640318696367613e-05
+
+imuRPYWeight: 0.01
+
+New:
+
+imuAccNoise: 0.1
+imuGyrNoise: 0.02
+imuAccBiasN: 0.005
+imuGyrBiasN: 0.0005
+
+imuRPYWeight: 0.001
+
+Reason:
+These values were changed because our IMU is significantly noisier than the high-end IMU used in the original LIO-SAM setup. The TransducerM TM210 used in our setup costs approximately 100 €, while the Microstrain 3DM-GX5-25 IMU used in the original LIO-SAM setup costs approximately 1,250 €. Therefore, the original LIO-SAM IMU is about 12.5 times more expensive. This large price difference also reflects the different sensor classes. The TransducerM is expected to have higher noise and lower accuracy than the Microstrain IMU.
+
+Because of this, it is reasonable that the IMU noise parameters in params.yaml had to be increased. By increasing these values, LIO-SAM is told that the IMU measurements are less reliable and should not be trusted as strongly as measurements from a high-end IMU. The noise values can be lowered again and matched more precisely to the environment, but with the selected values we achieved a comparatively stable output in our setup.
+
+For the same reason, the IMU weighting was reduced. This reduces the influence of the IMU roll, pitch and yaw values in the LIO-SAM optimization. Compared to our low-cost IMU, the Velodyne LiDAR provided more reliable information for the scan-matching-based pose estimation in our setup. Therefore, the configuration was adjusted so that LIO-SAM relies less strongly on the IMU orientation and more on the LiDAR-based optimization. The value can still be tuned further depending on the environment and the measured sensor quality.
+
+These are also NOT generated by the information from the datasheet, but instead measured so that we could see the noise within our setup and canceling these out.
+
+3.5 Changes depending on the environment (still in the params files)
+
+3.5.1 LiDAR minimum range
+
+Old:
+
+lidarMinRange: 1.0
+
+New:
+
+lidarMinRange: 0.9
+
+Reason:
+This was changed to fit our environment because we wanted to test the setup indoors. Also it's the standard number given by the lidar paramas.
+
+
+3.5.1 LiDAR maximum range
+
+Old:
+
+lidarMaxRange: 1000.0
+
+New:
+
+lidarMaxRange: 80.0
+
+Reason:
+This was also changed because we are working indoors.
+This reduces unnecessary point cloud processing and can lower the computational load. 
+
+
+3.5.2 Feature thresholds and minimum valid feature numbers
+
+Old:
+
+edgeThreshold: 1.0
+surfThreshold: 0.1
+edgeFeatureMinValidNum: 10
+surfFeatureMinValidNum: 100
+
+New:
+
+edgeThreshold: 0.5
+surfThreshold: 0.05
+edgeFeatureMinValidNum: 5
+surfFeatureMinValidNum: 50
+
+Reason:
+The LiDAR has fewer scan lines than, for example, an Ouster with 64 scan lines.
+
+Therefore, we changed these values so that LIO-SAM can detect and use more features.
+
+
+3.5.3 Voxel filter leaf sizes
+
+Old:
+
+odometrySurfLeafSize: 0.4
+mappingCornerLeafSize: 0.2
+mappingSurfLeafSize: 0.4
+
+New:
+
+odometrySurfLeafSize: 0.2
+mappingCornerLeafSize: 0.1
+mappingSurfLeafSize: 0.2
+
+Reason:
+We changed these values because we are working indoors and wanted to preserve and see more details in the map.
+
+3.5.4 Robot motion constraint
+
+Old / Default:
+
+z_tollerance: 1000.0                         
+rotation_tollerance: 1000.0 
+
+New:
+
+z_tollerance: 1.0
+rotation_tollerance: 0.2618
+
+Reason:
+These values were kept because they fit our indoor testing setup with a mostly ground-based robot. The z_tollerance limits the allowed vertical movement of the estimated pose to 1 meter, which helps prevent unrealistic jumps in z-direction.
+
+The rotation_tollerance limits the estimated roll and pitch angles. The value 0.2618 rad corresponds to approximately 15 degrees. This is suitable for our Velodyne VLP-16 setup because the sensor has a limited vertical field of view. If the LiDAR is tilted too much, the scan-matching can lose reliable geometric information and LIO-SAM can become unstable.
+
+However, this parameter does not directly describe the LiDAR field of view. Instead, constraintTransformation() uses this value to clamp the estimated pose. If the robot is actually tilted by more than the allowed tolerance, for example 20 degrees, LIO-SAM will still limit the estimated pose to 15 degrees. In that case, the estimated pose no longer matches the real robot orientation, and the map can be built incorrectly because points are inserted at wrong positions.

@@ -1,5 +1,4 @@
 Todo:
-1. checking noise again
-2. checking orientation of the IMU in the GUI
+1. checking orientation of the IMU in the GUI
 
-3. Writing documentation
+2. Writing documentation

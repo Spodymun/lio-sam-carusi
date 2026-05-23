@@ -323,7 +323,7 @@ RViz2 should now open and start mapping the environment.
 
 These are the necessary manual changes when building the setup from scratch.
 
-This guide assumes that you cloned the original repositories instead of using the prepared `lab_catania` repository.
+This guide assumes that you cloned the original repositories instead of using the prepared `lio-sam-carusi` repository.
 
 Your workspace should contain:
 

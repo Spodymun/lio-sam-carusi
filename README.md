@@ -25,8 +25,6 @@ distrobox create --name ros-jazzy --image docker.io/osrf/ros:jazzy-desktop --pul
 distrobox enter ros-jazzy
 ```
 
----
-
 ### 2. Install dependencies inside the Distrobox container
 
 Run the following commands **inside the Distrobox container**:
@@ -58,8 +56,6 @@ sudo apt install -y \
     libeigen3-dev
 ```
 
----
-
 ### 3. Install GTSAM
 
 ```bash
@@ -67,8 +63,6 @@ sudo add-apt-repository ppa:borglab/gtsam-release-4.2
 sudo apt update
 sudo apt install -y libgtsam-dev libgtsam-unstable-dev
 ```
-
----
 
 ### 4. Create the ROS 2 workspace and clone the repository
 
@@ -78,8 +72,6 @@ cd ~/ros2_ws/src
 
 git clone https://github.com/Spodymun/lab_catania
 ```
-
----
 
 ### 5. Install ROS dependencies
 
@@ -92,19 +84,7 @@ rosdep install -i --from-path src --rosdistro jazzy -y
 rosdep install --from-path src --ignore-src -r -y
 ```
 
----
-
-### 6. Create the required CppUnitLite archive
-
-This avoids a CMake issue where the library is searched for, although it is not needed for this setup.
-
-```bash
-sudo ar rcs /usr/lib/x86_64-linux-gnu/libCppUnitLite.a
-```
-
----
-
-### 7. Build the workspace
+### 6. Build the workspace
 
 ```bash
 cd ~/ros2_ws
@@ -116,9 +96,7 @@ colcon build --symlink-install --cmake-args -DGTSAM_DIR=/usr/lib/x86_64-linux-gn
 source install/setup.bash
 ```
 
----
-
-### 8. Configure automatic sourcing
+### 7. Configure automatic sourcing
 
 This makes sure that ROS 2 Jazzy and the workspace are sourced automatically whenever a new terminal is opened.
 
@@ -155,8 +133,6 @@ After the installation, start each component in its own terminal.
 
 > **Important:** The launch order matters. The Velodyne and IMU need a short moment before LIO-SAM is started.
 
----
-
 ### Terminal 1: Start the IMU
 
 ```bash
@@ -165,15 +141,11 @@ ros2 launch tm_imu imu.launch.py
 
 While launching the IMU, hold it as still as possible so that it can calibrate correctly.
 
----
-
 ### Terminal 2: Start the Velodyne driver
 
 ```bash
 ros2 launch velodyne_driver velodyne_driver_node-VLP16-launch.py
 ```
-
----
 
 ### Terminal 3: Start the Velodyne pointcloud transformer
 
@@ -181,13 +153,9 @@ ros2 launch velodyne_driver velodyne_driver_node-VLP16-launch.py
 ros2 launch velodyne_pointcloud velodyne_transform_node-VLP16-launch.py
 ```
 
----
-
 ### Wait 10-15 seconds
 
 Before starting LIO-SAM, wait around 10-15 seconds so that the IMU and Velodyne data streams are stable.
-
----
 
 ### Terminal 4: Start LIO-SAM
 
@@ -213,16 +181,4 @@ The resulting TF tree should look like the reference file in the repository:
 documentation/tf_chain.pdf
 ```
 
----
 
-## Notes
-
-- Use one terminal per launch command.
-- Always source the workspace before running ROS commands if automatic sourcing is not active:
-
-```bash
-source /opt/ros/jazzy/setup.bash
-source ~/ros2_ws/install/setup.bash
-```
-
-- If the Velodyne browser interface does not open at `10.0.1.7`, verify the sensor IP address and Ethernet configuration.

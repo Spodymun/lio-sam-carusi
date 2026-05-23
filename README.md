@@ -802,6 +802,8 @@ Now you can go back to the **Starting the System** section and launch everything
 
 In general, it is a good idea to check `documentation/documentation.txt`, because it explains many details in more depth and may help you fix problems in your own setup.
 
+We also added a code snippet that prints a warning in the IMU terminal if the LiDAR is tilted too much. This can help detect a possible error case, because too much tilt can lead to too little usable LiDAR data for stable matching.
+
 Apart from that, the two debugging steps below were especially helpful for us.
 
 ## Check the TF Tree

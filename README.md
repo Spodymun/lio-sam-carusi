@@ -107,7 +107,7 @@ cd ~/ros2_LIO_SAM_ws/src
 Use this option if you want to use the already prepared project repository:
 
 ```bash
-git clone https://github.com/Spodymun/lab_catania
+git clone https://github.com/Spodymun/lio-sam-carusi
 ```
 
 ### Option B: Build the Setup From Scratch

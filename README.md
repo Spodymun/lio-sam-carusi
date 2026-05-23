@@ -96,6 +96,53 @@ Clone LIO-SAM and Velodyne:
 git clone https://github.com/pixwyh/LIO-SAM-ROS2.git
 git clone https://github.com/ros-drivers/velodyne.git
 ```
+Then apply the required `CMakeLists.txt` changes for LIO-SAM:
+
+```bash
+cd ~/ros2_ws/src/LIO-SAM-ROS2
+
+python3 - <<'PY'
+from pathlib import Path
+
+p = Path("CMakeLists.txt")
+text = p.read_text()
+
+text = text.replace("find_package(Eigen REQUIRED)", "find_package(Eigen3 REQUIRED)")
+text = text.replace("Eigen\n", "Eigen3\n")
+text = text.replace("Eigen ", "Eigen3 ")
+
+new_include = '''include_directories(
+    include
+    include/lio_sam
+    ${PCL_INCLUDE_DIRS}
+    ${Eigen3_INCLUDE_DIRS}
+    "/usr/include/gtsam"
+)
+'''
+
+if "include_directories(" in text:
+    start = text.find("include_directories(")
+    depth = 0
+    end = None
+
+    for i in range(start, len(text)):
+        if text[i] == "(":
+            depth += 1
+        elif text[i] == ")":
+            depth -= 1
+            if depth == 0:
+                end = i + 1
+                break
+
+    if end is not None:
+        text = text[:start] + new_include + text[end:]
+else:
+    text = new_include + "\n" + text
+
+p.write_text(text)
+print("CMakeLists.txt updated.")
+PY
+```
 
 Then download the TransducerM ROS 2 example package from:
 

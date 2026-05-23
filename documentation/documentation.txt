@@ -47,7 +47,6 @@ Although the IMU and LiDAR were physically mounted in the same direction, the se
 
 Even though we used a standard matrix at first, the system only started working correctly after rotating the IMU by 90 degrees to the left.
 
-Pieroooooo please put a picture here :)
 
 This means:
 

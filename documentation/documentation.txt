@@ -108,7 +108,6 @@ We changed the imu_frame_id based on the frame expected by LIO-SAM. We did not h
 
 2.2.4  parent frame 
 parent_frame_id : 'chassis_link'
-timer_period : 2
 
 Reason for parent_frame_id:
 We changed the parent frame because in the LIO-SAM TF tree there is a chassis_link before the base_link. Even though these are all static transformations, we did not want to change too much, so that the setup remains reproducible. So we kept the chassis_link
@@ -116,7 +115,7 @@ We changed the parent frame because in the LIO-SAM TF tree there is a chassis_li
 2.2.5 timer period
 Reason for timer_period:
 We changed the timer_period to 2, because the IMU can now output data at 400 Hz.
-
+timer_period : 2
 
 2.3. IMU Node Source Code Changes
 
@@ -244,7 +243,7 @@ These variables store the most recent IMU roll and pitch values.
 
 3.1.2 Added additional IMU subscriber
 
-Added after the voxel-grid filter setup:
+Add after the voxel-grid filter setup:
 
 downSizeFilterCorner.setLeafSize(mappingCornerLeafSize, mappingCornerLeafSize, mappingCornerLeafSize);
 downSizeFilterSurf.setLeafSize(mappingSurfLeafSize, mappingSurfLeafSize, mappingSurfLeafSize);
@@ -271,7 +270,7 @@ Only roll and pitch are stored because they are relevant for checking whether th
 
 3.1.3 Added IMU tilt vs. LiDAR field-of-view check
 
-Added at the beginning of scan2MapOptimization(), after:
+Add at the beginning of scan2MapOptimization(), after:
 
 void scan2MapOptimization()
 {

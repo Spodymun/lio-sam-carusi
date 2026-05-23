@@ -14,7 +14,12 @@ ROS 2 Jazzy is used in this project, therefore Ubuntu 24.04 is required.
 
 ---
 
-## Quick Start
+## Choose Your Installation Method
+
+This guide focuses mainly on the quick-start installation using our prepared repository.  
+However, it also includes the alternative steps for building the setup from scratch.
+
+If you choose the from-scratch installation, follow the additional instructions below the install guide to apply the required changes manually.
 
 ### 1. Create and enter the ROS 2 Jazzy Distrobox container
 
@@ -64,14 +69,72 @@ sudo apt update
 sudo apt install -y libgtsam-dev libgtsam-unstable-dev
 ```
 
-### 4. Create the ROS 2 workspace and clone the repository
+## 4. Create the ROS 2 workspace and clone the repository
+
+Create the ROS 2 workspace:
 
 ```bash
 mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
+```
 
+### Option A: Quick start with our prepared repository
+
+Use this option if you want to use the already prepared project repository:
+
+```bash
 git clone https://github.com/Spodymun/lab_catania
 ```
+
+### Option B: Build the setup from scratch
+
+Use this option if you want to start from the original repositories and apply the required changes manually.
+
+Clone LIO-SAM and Velodyne:
+
+```bash
+git clone https://github.com/pixwyh/LIO-SAM-ROS2.git
+git clone https://github.com/ros-drivers/velodyne.git
+```
+
+Then download the TransducerM ROS 2 example package from:
+
+```text
+https://www.syd-dynamics.com/download/transducerm_example_ros2-pkg/
+```
+
+After downloading it:
+
+1. Go to your `Downloads` folder.
+2. Unpack the downloaded archive.
+3. Open the unpacked folder.
+4. Go one folder deeper if there is another folder inside.
+5. Rename the actual ROS 2 package folder to:
+
+```text
+tm_imu
+```
+
+6. Copy the renamed `tm_imu` folder into your workspace source folder:
+
+```bash
+cp -r ~/Downloads/tm_imu ~/ros2_ws/src/
+```
+
+If the renamed `tm_imu` folder is still inside another unpacked folder, use this pattern instead:
+
+```bash
+cp -r ~/Downloads/<UNPACKED_FOLDER>/<INNER_FOLDER>/tm_imu ~/ros2_ws/src/
+```
+
+At the end, your source folder should contain:
+
+```text
+~/ros2_ws/src/LIO-SAM-ROS2
+~/ros2_ws/src/velodyne
+~/ros2_ws/src/tm_imu
+```
+
 
 ### 5. Install ROS dependencies
 
@@ -129,7 +192,7 @@ If this does not connect, check the current Velodyne IP address. In our case, th
 
 ## Starting the System
 
-After the installation, start each component in its own terminal.
+After the installation OF THE QUICK START, start each component in its own terminal. Otherwise you'll need to come back after doing the changes manually (under this chapter)
 
 > **Important:** The launch order matters. The Velodyne and IMU need a short moment before LIO-SAM is started.
 
@@ -160,7 +223,7 @@ Before starting LIO-SAM, wait around 10-15 seconds so that the IMU and Velodyne 
 ### Terminal 4: Start LIO-SAM
 
 ```bash
-ros2 launch lio-sam run.launch.py
+ros2 launch LIO-SAM-ROS2 run.launch.py
 ```
 
 RViz2 should now open and start mapping the environment.

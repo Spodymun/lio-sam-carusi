@@ -20,7 +20,7 @@ Although the IMU and LiDAR were physically mounted in the same direction, the se
 
 This was identified through a manual translation test: a physical movement along the intended x-axis mainly resulted in a y-axis displacement in `/lio_sam/mapping/odometry`. After correcting the relative yaw alignment by 90 degrees, translations and rotations around all axes were consistent.
 
-Even though we first used a standard matrix, the system only started working correctly after rotating the IMU by 90 degrees to the left.
+When setting up the TransducerM TM210 IMU, the system gave wrong roll and pitch values even though the IMU and LiDAR were mounted in the same direction. Rotating the IMU 90 degrees fixed the problem. This is most likely caused by the IMU's internal sensor not being aligned with its outer casing, though a bug in the driver code cannot be ruled out. Since the fix worked well and the system behaved correctly afterwards, we did not investigate further and focused on optimizing the rest of the system.
 
 ![Physical setup of the LiDAR and IMU](documentation/setup.jpeg)
 

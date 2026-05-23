@@ -22,7 +22,7 @@ This was identified through a manual translation test: a physical movement along
 
 Even though we first used a standard matrix, the system only started working correctly after rotating the IMU by 90 degrees to the left.
 
-> Pieroooooo please put a picture here :)
+![Physical setup of the LiDAR and IMU](documentation/setup.jpeg)
 
 This means:
 
@@ -32,16 +32,6 @@ IMU y = -LiDAR x
 ```
 
 After applying this physical and coordinate rotation, the system worked very well.
-
-For this IMU, we also needed to install the manufacturer GUI:
-
-```text
-https://www.syd-dynamics.com/download-center/
-```
-
-With this GUI, we could check how the IMU works and which measurement units and metrics it was actually using.
-
-We also used the GUI to change the IMU output frequency. Originally, the IMU sent data at 50 Hz. We changed it to 400 Hz.
 
 ---
 
@@ -65,8 +55,6 @@ Run this in the terminal:
 distrobox create --name ros-jazzy --image docker.io/osrf/ros:jazzy-desktop --pull
 distrobox enter ros-jazzy
 ```
-
----
 
 ## 2. Install Dependencies Inside the Distrobox Container
 
@@ -97,8 +85,6 @@ sudo apt install -y \
     libeigen3-dev
 ```
 
----
-
 ## 3. Install GTSAM
 
 ```bash
@@ -106,8 +92,6 @@ sudo add-apt-repository ppa:borglab/gtsam-release-4.2
 sudo apt update
 sudo apt install -y libgtsam-dev libgtsam-unstable-dev
 ```
-
----
 
 ## 4. Create the ROS 2 Workspace and Clone the Repository
 
@@ -118,8 +102,6 @@ mkdir -p ~/ros2_LIO_SAM_ws/src
 cd ~/ros2_LIO_SAM_ws/src
 ```
 
----
-
 ### Option A: Quick Start With Our Prepared Repository
 
 Use this option if you want to use the already prepared project repository:
@@ -127,8 +109,6 @@ Use this option if you want to use the already prepared project repository:
 ```bash
 git clone https://github.com/Spodymun/lab_catania
 ```
-
----
 
 ### Option B: Build the Setup From Scratch
 
@@ -227,8 +207,6 @@ At the end, your source folder should contain:
 ~/ros2_LIO_SAM_ws/src/tm_imu
 ```
 
----
-
 ## 5. Change the IMU Port to Match Your System
 
 In general, you need to set the correct `imu_port`.
@@ -247,8 +225,6 @@ After that, change the port in the following file:
 ~/ros2_LIO_SAM_ws/src/tm_imu/config/params.yaml
 ```
 
----
-
 ## 6. Install ROS Dependencies
 
 ```bash
@@ -259,8 +235,6 @@ source /opt/ros/jazzy/setup.bash
 rosdep install -i --from-path src --rosdistro jazzy -y
 rosdep install --from-path src --ignore-src -r -y
 ```
-
----
 
 ## 7. Build the Workspace
 
@@ -273,8 +247,6 @@ colcon build --symlink-install --cmake-args -DGTSAM_DIR=/usr/lib/x86_64-linux-gn
 
 source install/setup.bash
 ```
-
----
 
 ## 8. Configure Automatic Sourcing
 
@@ -315,8 +287,6 @@ If you chose the from-scratch installation, first complete the **From-Scratch Ma
 
 > **Important:** The launch order matters. The Velodyne and IMU need a short moment before LIO-SAM is started.
 
----
-
 ## Terminal 1: Start the IMU
 
 ```bash
@@ -325,23 +295,17 @@ ros2 launch tm_imu imu.launch.py
 
 While launching the IMU, hold it as still as possible so that it can calibrate correctly.
 
----
-
 ## Terminal 2: Start the Velodyne Driver
 
 ```bash
 ros2 launch velodyne_driver velodyne_driver_node-VLP16-launch.py
 ```
 
----
-
 ## Terminal 3: Start the Velodyne Pointcloud Transformer
 
 ```bash
 ros2 launch velodyne_pointcloud velodyne_transform_node-VLP16-launch.py
 ```
-
----
 
 ## Terminal 4: Start LIO-SAM
 
@@ -393,8 +357,6 @@ Change this:
 organize_cloud: false
 ```
 
----
-
 ## 2. Velodyne Driver Configuration
 
 Open this file:
@@ -410,8 +372,6 @@ device_ip: ""
 ```
 
 This means that the driver does not filter packets by one fixed LiDAR IP address.
-
----
 
 ## 3. IMU Parameter Configuration
 
@@ -429,8 +389,6 @@ parent_frame_id: 'chassis_link'
 timer_period: 2
 ```
 
----
-
 ## 4. IMU Node Source Code Changes
 
 Open this file:
@@ -438,8 +396,6 @@ Open this file:
 ```text
 ~/ros2_LIO_SAM_ws/src/tm_imu/src/tm_imu_node.cpp
 ```
-
----
 
 ### 4.1 Change the IMU Topic Names and QoS
 
@@ -459,8 +415,6 @@ publisher_imu_rpy_  = this->create_publisher<geometry_msgs::msg::Vector3Stamped>
 publisher_imu_mag_  = this->create_publisher<sensor_msgs::msg::MagneticField>("imu/data_mag", rclcpp::SensorDataQoS());
 ```
 
----
-
 ### 4.2 Disable Dynamic IMU TF Publishing
 
 Search for:
@@ -474,8 +428,6 @@ Comment it out:
 ```cpp
 // PublishTransform();
 ```
-
----
 
 ### 4.3 Change the Transform Parent Frame
 
@@ -491,8 +443,6 @@ Replace it with:
 transform_.header.frame_id =
     "" + this->get_parameter("parent_frame_id").as_string();
 ```
-
----
 
 ### 4.4 Reduce the Serial Timeout
 
@@ -511,8 +461,6 @@ The result should look similar to:
 ```cpp
 serialib1->readBytes(..., 1, ...);
 ```
-
----
 
 ### 4.5 Convert Acceleration From g to m/s²
 
@@ -534,8 +482,6 @@ imu_data_.linear_acceleration.z = sensor.accZ * 9.80665;
 
 ROS expects acceleration in `m/s²`, not in `g`.
 
----
-
 ## 5. LIO-SAM `mapOptmization.cpp` Changes
 
 Open this file:
@@ -543,8 +489,6 @@ Open this file:
 ```text
 ~/ros2_LIO_SAM_ws/src/LIO-SAM-ROS2/src/mapOptmization.cpp
 ```
-
----
 
 ### 5.1 Add IMU Subscriber Variables
 
@@ -561,8 +505,6 @@ Add this directly after it:
 rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr subImuRaw;
 float latestImuRoll = 0.0, latestImuPitch = 0.0;
 ```
-
----
 
 ### 5.2 Add an Additional IMU Subscriber
 
@@ -590,8 +532,6 @@ subImuRaw = create_subscription<sensor_msgs::msg::Imu>(
     });
 ```
 
----
-
 ### 5.3 Add the IMU Tilt Check
 
 Search for the beginning of `scan2MapOptimization()`:
@@ -618,8 +558,6 @@ if (imuTilt > lidarVerticalFOV) {
 }
 ```
 
----
-
 ### 5.4 Correct the Published TF Child Frame
 
 Search for:
@@ -633,8 +571,6 @@ Replace it with:
 ```cpp
 trans_odom_to_lidar.child_frame_id = "base_link";
 ```
-
----
 
 ## 6. LIO-SAM Launch File
 
@@ -655,8 +591,6 @@ Replace it with:
 ```python
 share_dir, 'config', 'params.yaml'),
 ```
-
----
 
 ## 7. LIO-SAM Robot Description
 
@@ -688,8 +622,6 @@ Replace it with:
 </joint>
 ```
 
----
-
 ## 8. LIO-SAM Parameter Configuration
 
 Open this file:
@@ -699,8 +631,6 @@ Open this file:
 ```
 
 Change the following values.
-
----
 
 ### 8.1 Pointcloud Topic
 
@@ -716,8 +646,6 @@ to:
 pointCloudTopic: "/velodyne_points"
 ```
 
----
-
 ### 8.2 LiDAR Frame
 
 Change:
@@ -731,8 +659,6 @@ to:
 ```yaml
 lidarFrame: "velodyne"
 ```
-
----
 
 ### 8.3 IMU Gravity
 
@@ -748,8 +674,6 @@ to:
 imuGravity: -9.80511
 ```
 
----
-
 ### 8.4 Sensor Type
 
 Change:
@@ -763,8 +687,6 @@ to:
 ```yaml
 sensor: velodyne
 ```
-
----
 
 ### 8.5 Number of Scan Lines
 
@@ -780,8 +702,6 @@ to:
 N_SCAN: 16
 ```
 
----
-
 ### 8.6 Horizontal Scan Resolution
 
 Change:
@@ -796,8 +716,6 @@ to:
 Horizon_SCAN: 1800
 ```
 
----
-
 ### 8.7 LiDAR Minimum Range
 
 Change:
@@ -811,8 +729,6 @@ to:
 ```yaml
 lidarMinRange: 0.9
 ```
-
----
 
 ## 9. IMU Noise, Bias and Weight Parameters
 
@@ -868,8 +784,6 @@ imuRPYWeight: 0.001
 
 These values are not universal. They should be adjusted depending on your environment.
 
----
-
 ## 10. Final Check
 
 After all changes, rebuild the workspace:
@@ -886,6 +800,12 @@ Now you can go back to the **Starting the System** section and launch everything
 
 # Debugging
 
+In general, it is a good idea to check `documentation/documentation.txt`, because it explains many details in more depth and may help you fix problems in your own setup.
+
+Apart from that, the two debugging steps below were especially helpful for us.
+
+## Check the TF Tree
+
 To check the TF tree after launching everything, open a new terminal and run:
 
 ```bash
@@ -897,3 +817,15 @@ The resulting TF tree should look like the reference file in the repository:
 ```text
 documentation/tf_chain.pdf
 ```
+
+## IMU Debugging
+
+If you have issues with the IMU, you can try using the manufacturer GUI:
+
+```text
+https://www.syd-dynamics.com/download-center/
+```
+
+With this GUI, we were able to check how the IMU works and which measurement units and metrics it actually uses.
+
+We also used the GUI to change the IMU output frequency. Originally, the IMU sent data at 50 Hz. We changed it to 400 Hz.

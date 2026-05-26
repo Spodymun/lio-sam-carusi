@@ -330,6 +330,8 @@ cat << 'EOF' >> ~/.bashrc
 
 # Source ROS 2 and workspace only when inside Distrobox
 if [ -n "$DISTROBOX_ENTER_PATH" ]; then
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
     source /opt/ros/jazzy/setup.bash
     
     if [ -f "$HOME/ros2_LIO_SAM_ws/install/setup.bash" ]; then

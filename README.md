@@ -698,7 +698,21 @@ to:
 imuGravity: -9.80511
 ```
 
-### 8.4 Sensor Type
+### 8.4 IMU extrinsic translation
+
+Change:
+
+```yaml
+extrinsicTrans: [0.0, 0.0, 0.0]
+```
+
+to:
+
+```yaml
+extrinsicTrans: [0.05, 0.065, 0.06]
+```
+
+### 8.5 Sensor Type
 
 Change:
 
@@ -712,7 +726,7 @@ to:
 sensor: velodyne
 ```
 
-### 8.5 Number of Scan Lines
+### 8.6 Number of Scan Lines
 
 Change:
 
@@ -726,7 +740,7 @@ to:
 N_SCAN: 16
 ```
 
-### 8.6 Horizontal Scan Resolution
+### 8.7 Horizontal Scan Resolution
 
 Change:
 
@@ -740,7 +754,7 @@ to:
 Horizon_SCAN: 1800
 ```
 
-### 8.7 LiDAR Minimum Range
+### 8.8 LiDAR Minimum Range
 
 Change:
 

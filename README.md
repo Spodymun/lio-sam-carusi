@@ -68,8 +68,6 @@ sudo apt install -y \
     curl \
     gnupg \
     software-properties-common \
-    python3-colcon-common-extensions \
-    ros-dev-tools \
     ros-jazzy-navigation2 \
     ros-jazzy-nav2-bringup \
     ros-jazzy-robot-localization \

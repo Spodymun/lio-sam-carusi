@@ -275,7 +275,7 @@ Quick Start With Our Prepared Repository**, the required changes are already inc
 Build the workspace:
 
 ```bash
-colcon build --symlink-install --cmake-args -DGTSAM_DIR=/usr/lib/x86_64-linux-gnu/cmake/GTSAM
+colcon build
 ```
 
 Source the workspace:

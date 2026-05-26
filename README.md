@@ -61,6 +61,19 @@ distrobox enter ros-jazzy
 ## 2. Install Dependencies Inside the Distrobox Container
 
 ```bash
+cat << 'EOF' >> ~/.bashrc
+
+# Source ROS 2 and workspace only when inside Distrobox
+if [ -n "$DISTROBOX_ENTER_PATH" ]; then
+    source /opt/ros/jazzy/setup.bash
+    
+    if [ -f "$HOME/ros2_LIO_SAM_ws/install/setup.bash" ]; then
+        source "$HOME/ros2_LIO_SAM_ws/install/setup.bash"
+    fi
+fi
+EOF
+
+source ~/.bashrc
 sudo apt update
 
 sudo apt install -y \

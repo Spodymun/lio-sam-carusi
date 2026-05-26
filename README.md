@@ -107,24 +107,32 @@ sudo make install
 
 ## 4. Create the ROS 2 Workspace and Clone the Repository
 
+### Option A: Quick Start With Our Prepared Repository
+
+Use this option if you want to use the already prepared project repository.
+
+Create the ROS 2 workspace:
+
+```bash
+mkdir -p ~/ros2_LIO_SAM_ws
+cd ~/ros2_LIO_SAM_ws
+```
+Then clone the repo:
+
+```bash
+git clone https://github.com/Spodymun/lio-sam-carusi src
+```
+
+### Option B: Build the Setup From Scratch
+
+Use this option if you want to start from the original repositories and apply the required changes manually.
+
 Create the ROS 2 workspace:
 
 ```bash
 mkdir -p ~/ros2_LIO_SAM_ws/src
 cd ~/ros2_LIO_SAM_ws/src
 ```
-
-### Option A: Quick Start With Our Prepared Repository
-
-Use this option if you want to use the already prepared project repository:
-
-```bash
-git clone https://github.com/Spodymun/lio-sam-carusi
-```
-
-### Option B: Build the Setup From Scratch
-
-Use this option if you want to start from the original repositories and apply the required changes manually.
 
 Clone LIO-SAM and Velodyne:
 

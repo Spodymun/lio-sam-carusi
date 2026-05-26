@@ -422,8 +422,20 @@ imuGravity: -9.80511
 Reason:
 Our IMU reports that we are measuring the Earth’s gravitational pull as -g, while the IMU configuration expected by the original LIO-SAM setup measured it as +g.
 
+3.4.4 IMU extrinsic translation
 
-3.4.4 Sensor type
+Old:
+
+extrinsicTrans: [0.0, 0.0, 0.0]
+
+New:
+
+extrinsicTrans: [0.05, 0.065, 0.06]
+
+Reason:
+The IMU is not mounted exactly at the same physical position as the LiDAR/base frame. Therefore, the translation offset between both sensors was measured manually and added to the LIO-SAM configuration. The values describe the IMU position relative to the LiDAR/base frame in meters.
+
+3.4.5 Sensor type
 
 Old:
 
@@ -439,7 +451,7 @@ This is very important because it changes the calculation inside the files in th
 LIO-SAM handles Ouster and Velodyne data differently, so this parameter has to match the real LiDAR sensor.
 
 
-3.4.5 Number of scan lines
+3.4.6 Number of scan lines
 
 Old:
 
@@ -455,7 +467,7 @@ This is important because our LiDAR only has 16 scan layers.
 Otherwise, the data could be interpreted incorrectly.
 
 
-3.4.6 Horizontal scan resolution
+3.4.7 Horizontal scan resolution
 
 Old:
 
@@ -471,7 +483,7 @@ This was changed so that the data is interpreted correctly for our Velodyne setu
 Otherwise, the point cloud data could be interpreted incorrectly.
 
 
-3.4.7 IMU noise, bias and weight parameters
+3.4.8 IMU noise, bias and weight parameters
 
 Old:
 

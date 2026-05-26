@@ -248,7 +248,7 @@ rosdep install -i --from-path src --rosdistro jazzy -y
 rosdep install --from-path src --ignore-src -r -y
 ```
 
-# 7. Build the Workspace
+## 7. Build the Workspace
 
 Go to the workspace root:
 
@@ -262,7 +262,8 @@ Source ROS 2 Jazzy:
 source /opt/ros/jazzy/setup.bash
 ```
 
-If you are using **Option A: Quick Start With Our Prepared Repository**, the required changes are already included. In this case, you can directly build the workspace.
+### If you are using Option A: 
+Quick Start With Our Prepared Repository**, the required changes are already included. In this case, you can directly build the workspace.
 
 Build the workspace:
 
@@ -276,7 +277,8 @@ Source the workspace:
 source install/setup.bash
 ```
 
-If you are using **Option B: Build the Setup From Scratch**, the `CMakeLists.txt` file inside the LIO-SAM package has to be adapted before building.
+### If you are using Option B: 
+Build the Setup From Scratch**, the `CMakeLists.txt` file inside the LIO-SAM package has to be adapted before building.
 
 Open the `CMakeLists.txt` file inside the LIO-SAM folder and apply the following changes:
 

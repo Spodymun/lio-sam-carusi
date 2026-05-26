@@ -99,6 +99,9 @@ cmake \
       -DGTSAM_WITH_TBB=OFF \
       -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF \
       -DGTSAM_BUILD_TESTS=OFF
+
+make -j$(nproc)
+sudo make install
 ```
 
 ## 4. Create the ROS 2 Workspace and Clone the Repository

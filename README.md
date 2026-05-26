@@ -355,7 +355,7 @@ If this does not connect, check the current Velodyne IP address. In our case, th
 
 # Starting the System
 
-After the quick-start installation, start each component in its own terminal.
+After the quick-start installation, start each component in its own terminal (you need to open distrobox each time).
 
 If you chose the from-scratch installation, first complete the **From-Scratch Manual Changes Tutorial** below and then come back to this section.
 

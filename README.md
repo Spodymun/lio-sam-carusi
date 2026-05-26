@@ -86,9 +86,19 @@ sudo apt install -y \
 ## 3. Install GTSAM
 
 ```bash
-sudo add-apt-repository ppa:borglab/gtsam-release-4.2
 sudo apt update
 sudo apt install -y libgtsam-dev libgtsam-unstable-dev
+cd ~
+git clone --branch 4.2 https://github.com/borglab/gtsam.git
+cd gtsam
+mkdir build && cd build
+cmake 
+      -DGTSAM_BUILD_UNSTABLE=ON \
+      -DGTSAM_USE_SYSTEM_EIGEN=ON \
+      -DGTSAM_USE_QUATERNIONS=OFF \
+      -DGTSAM_WITH_TBB=OFF \
+      -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF \
+      -DGTSAM_BUILD_TESTS=OFF
 ```
 
 ## 4. Create the ROS 2 Workspace and Clone the Repository

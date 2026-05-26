@@ -52,6 +52,8 @@ However, it also includes an alternative setup from scratch.
 Run this in the terminal:
 
 ```bash
+sudo apt install distrobox
+
 distrobox create --name ros-jazzy --image docker.io/osrf/ros:jazzy-desktop --pull
 distrobox enter ros-jazzy
 ```

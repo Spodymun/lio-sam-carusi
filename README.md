@@ -61,19 +61,6 @@ distrobox enter ros-jazzy
 ## 2. Install Dependencies Inside the Distrobox Container
 
 ```bash
-cat << 'EOF' >> ~/.bashrc
-
-# Source ROS 2 and workspace only when inside Distrobox
-if [ -n "$DISTROBOX_ENTER_PATH" ]; then
-    source /opt/ros/jazzy/setup.bash
-    
-    if [ -f "$HOME/ros2_LIO_SAM_ws/install/setup.bash" ]; then
-        source "$HOME/ros2_LIO_SAM_ws/install/setup.bash"
-    fi
-fi
-EOF
-
-source ~/.bashrc
 sudo apt update
 
 sudo apt install -y \
@@ -339,8 +326,18 @@ Now you can go back up again and build the workspace.
 This makes sure that ROS 2 Jazzy and the workspace are sourced automatically whenever a new terminal is opened.
 
 ```bash
-echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
-echo "source ~/ros2_LIO_SAM_ws/install/setup.bash" >> ~/.bashrc
+cat << 'EOF' >> ~/.bashrc
+
+# Source ROS 2 and workspace only when inside Distrobox
+if [ -n "$DISTROBOX_ENTER_PATH" ]; then
+    source /opt/ros/jazzy/setup.bash
+    
+    if [ -f "$HOME/ros2_LIO_SAM_ws/install/setup.bash" ]; then
+        source "$HOME/ros2_LIO_SAM_ws/install/setup.bash"
+    fi
+fi
+EOF
+
 source ~/.bashrc
 ```
 

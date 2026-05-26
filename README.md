@@ -255,6 +255,17 @@ cd ~/ros2_LIO_SAM_ws
 
 source /opt/ros/jazzy/setup.bash
 
+#Entrare nella CMAKE.txt dentro la cartella LIO_SAM: cercare EIGEN REQUIRED e modificarlo in EIGEN3 REQUIRED
+poi bisogna cercare ament_target_dependencies e modificare Eigen in Eigen3.
+Dopo bisogna aggiungere queste righe:
+include_directories(
+    include
+    include/lio_sam
+    ${PCL_INCLUDE_DIRS}
+    ${Eigen3_INCLUDE_DIRS}
+    "/usr/local/include/gtsam"  #  in /usr/local perché l'abbiamo compilata noi
+)
+
 colcon build --symlink-install --cmake-args -DGTSAM_DIR=/usr/lib/x86_64-linux-gnu/cmake/GTSAM
 
 source install/setup.bash

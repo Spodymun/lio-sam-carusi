@@ -248,29 +248,69 @@ rosdep install -i --from-path src --rosdistro jazzy -y
 rosdep install --from-path src --ignore-src -r -y
 ```
 
-## 7. Build the Workspace
+# 7. Build the Workspace
+
+Go to the workspace root:
 
 ```bash
 cd ~/ros2_LIO_SAM_ws
+```
 
+Source ROS 2 Jazzy:
+
+```bash
 source /opt/ros/jazzy/setup.bash
+```
 
-#Entrare nella CMAKE.txt dentro la cartella LIO_SAM: cercare EIGEN REQUIRED e modificarlo in EIGEN3 REQUIRED
-poi bisogna cercare ament_target_dependencies e modificare Eigen in Eigen3.
-Dopo bisogna aggiungere queste righe:
+If you are using **Option A: Quick Start With Our Prepared Repository**, the required changes are already included. In this case, you can directly build the workspace.
+
+Build the workspace:
+
+```bash
+colcon build --symlink-install --cmake-args -DGTSAM_DIR=/usr/lib/x86_64-linux-gnu/cmake/GTSAM
+```
+
+Source the workspace:
+
+```bash
+source install/setup.bash
+```
+
+If you are using **Option B: Build the Setup From Scratch**, the `CMakeLists.txt` file inside the LIO-SAM package has to be adapted before building.
+
+Open the `CMakeLists.txt` file inside the LIO-SAM folder and apply the following changes:
+
+Replace:
+
+```cmake
+find_package(Eigen REQUIRED)
+```
+
+with:
+
+```cmake
+find_package(Eigen3 REQUIRED)
+```
+
+Then search for all `ament_target_dependencies(...)` entries and replace `Eigen` with `Eigen3`.
+
+Additionally, add the following include directories:
+
+```cmake
 include_directories(
     include
     include/lio_sam
     ${PCL_INCLUDE_DIRS}
     ${Eigen3_INCLUDE_DIRS}
-    "/usr/local/include/gtsam"  #  in /usr/local perché l'abbiamo compilata noi
+    "/usr/local/include/gtsam"
 )
-Inoltre bisogna aggiungere plc_conversion in tutti i ament_target_dependencies! In tutti e 5 i nodi.
-
-colcon build --symlink-install --cmake-args -DGTSAM_DIR=/usr/lib/x86_64-linux-gnu/cmake/GTSAM
-
-source install/setup.bash
 ```
+
+The GTSAM include path is set to `/usr/local/include/gtsam` because GTSAM was compiled manually and installed locally.
+
+Finally, add `pcl_conversions` to all `ament_target_dependencies(...)` entries of the LIO-SAM nodes. This has to be done for all five nodes.
+
+Now you can go back up again and build the workspace.
 
 ## 8. Configure Automatic Sourcing
 

@@ -61,9 +61,6 @@ distrobox enter ros-jazzy
 ## 2. Install Dependencies Inside the Distrobox Container
 
 ```bash
-echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
-source ~/.bashrc
-
 sudo apt update
 
 sudo apt install -y \

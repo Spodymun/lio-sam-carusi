@@ -265,6 +265,7 @@ include_directories(
     ${Eigen3_INCLUDE_DIRS}
     "/usr/local/include/gtsam"  #  in /usr/local perché l'abbiamo compilata noi
 )
+Inoltre bisogna aggiungere plc_conversion in tutti i ament_target_dependencies! In tutti e 5 i nodi.
 
 colcon build --symlink-install --cmake-args -DGTSAM_DIR=/usr/lib/x86_64-linux-gnu/cmake/GTSAM
 

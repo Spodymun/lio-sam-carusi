@@ -92,7 +92,7 @@ cd ~
 git clone --branch 4.2 https://github.com/borglab/gtsam.git
 cd gtsam
 mkdir build && cd build
-cmake 
+cmake \
       -DGTSAM_BUILD_UNSTABLE=ON \
       -DGTSAM_USE_SYSTEM_EIGEN=ON \
       -DGTSAM_USE_QUATERNIONS=OFF \
